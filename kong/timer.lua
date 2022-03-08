@@ -901,6 +901,10 @@ function _M:once(name, callback, delay, ...)
     assert(type(delay) == "number", "expected `delay to be a number")
     assert(delay >= 0, "expected `delay` to be greater than or equal to 0")
 
+    if delay == 0 then
+        return timer_at(delay, callback, ...)
+    end
+
     delay = max(delay, 0.11)
 
     if delay >= MAX_EXPIRE then
