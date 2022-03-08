@@ -59,18 +59,18 @@ end
 
 
 require("kong.globalpatches")()
--- local timer = require("kong.timer")
--- timer:configure({ threads = 100 })
+local timer = require("kong.timer")
+timer:configure({ threads = 100 })
 
--- local unpack = table.unpack
+local unpack = table.unpack
 
--- _G.ngx.timer.at = function(delay, callback, ...)
---     return timer:once(nil, callback, delay, unpack({ ... }))
---   end
+_G.ngx.timer.at = function(delay, callback, ...)
+    return timer:once(nil, callback, delay, unpack({ ... }))
+  end
 
--- _G.ngx.timer.every = function(delay, callback, ...)
---     return timer:every(nil, callback, delay, unpack({ ... }))
--- end
+_G.ngx.timer.every = function(delay, callback, ...)
+    return timer:every(nil, callback, delay, unpack({ ... }))
+end
 
 
 local kong_global = require "kong.global"
@@ -588,7 +588,7 @@ end
 function Kong.init_worker()
   local ctx = ngx.ctx
 
-  -- timer:start()
+  timer:start()
 
 
   ctx.KONG_PHASE = PHASES.init_worker
