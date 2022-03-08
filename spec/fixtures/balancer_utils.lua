@@ -7,7 +7,7 @@ local https_server = require "spec.fixtures.https_server"
 
 local CONSISTENCY_FREQ = 0.1
 local FIRST_PORT = 20000
-local HEALTHCHECK_INTERVAL = 0.01
+local HEALTHCHECK_INTERVAL = 0.1
 local SLOTS = 10
 local TEST_LOG = false -- extra verbose logging
 local healthchecks_defaults = {
@@ -372,7 +372,7 @@ do
           end
         end
       end
-      ngx.sleep(0.1) -- poll-wait
+      ngx.sleep(0.2) -- poll-wait
     end
     return false
   end
