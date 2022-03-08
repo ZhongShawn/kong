@@ -918,7 +918,7 @@ function _M:every(name, callback, interval, ...)
     assert(type(interval) == "number", "expected `interval to be a number")
     assert(interval > 0, "expected `interval` to be greater than or equal to 0")
 
-    interval = max(interval, 0,11)
+    interval = max(interval, 0.11)
 
     if interval >= MAX_EXPIRE then
         return ngx.timer.every(interval, callback, ...)
