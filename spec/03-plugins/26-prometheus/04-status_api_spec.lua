@@ -408,6 +408,8 @@ describe("Plugin: prometheus (access via status API)", function()
     })
     admin_client:close()
 
+    ngx.sleep(0.5)
+
     local body
     helpers.wait_until(function()
       local res = assert(status_client:send {
