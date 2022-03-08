@@ -8,7 +8,7 @@ function red() {
     echo -e "\033[1;31m$*\033[0m"
 }
 
-export BUSTED_ARGS="--no-k -o htest -v --exclude-tags=flaky,ipv6 -t only"
+export BUSTED_ARGS="--no-k -o htest -v --exclude-tags=flaky,ipv6"
 
 if [ "$KONG_TEST_DATABASE" == "postgres" ]; then
     export TEST_CMD="bin/busted $BUSTED_ARGS,cassandra,off"
@@ -40,7 +40,7 @@ if [ "$TEST_SUITE" == "integration" ]; then
         # Note that the split here is chosen carefully to result
         # in a similar run time between the two batches, and should
         # be adjusted if imbalance become significant in the future
-        eval "$TEST_CMD" $(ls -d spec/02-integration/* | tail -n+5)
+        eval "$TEST_CMD -t only " $(ls -d spec/02-integration/* | tail -n+5)
 
     else
         # Non GitHub Actions
