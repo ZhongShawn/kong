@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -x
 
 function cyan() {
     echo -e "\033[1;36m$*\033[0m"
@@ -41,6 +41,8 @@ if [ "$TEST_SUITE" == "integration" ]; then
         # in a similar run time between the two batches, and should
         # be adjusted if imbalance become significant in the future
         eval "$TEST_CMD" $(ls -d spec/02-integration/* | tail -n+5)
+        cat servroot/logs/error.log
+        exit 1
 
     else
         # Non GitHub Actions
