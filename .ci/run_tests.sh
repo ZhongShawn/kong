@@ -40,6 +40,7 @@ if [ "$TEST_SUITE" == "integration" ]; then
         # Note that the split here is chosen carefully to result
         # in a similar run time between the two batches, and should
         # be adjusted if imbalance become significant in the future
+        export KONG_TEST_DONT_CLEAN=1
         eval "$TEST_CMD" $(ls -d spec/02-integration/* | tail -n+5)
         cat servroot/logs/error.log
         exit 1
