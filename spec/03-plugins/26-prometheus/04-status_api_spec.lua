@@ -379,7 +379,7 @@ describe("Plugin: prometheus (access via status API)", function()
     assert.matches('kong_upstream_target_health{upstream="mock-upstream",target="some-random-dns:80",address="",state="healthchecks_off",subsystem="stream"} 0', body, nil, true)
   end)
 
-  it("remove metrics from deleted upstreams", function()
+  it("remove metrics from deleted upstreams #only", function()
     local admin_client = helpers.admin_client()
     assert(admin_client:send {
       method  = "DELETE",
