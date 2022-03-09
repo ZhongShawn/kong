@@ -401,6 +401,7 @@ describe("Plugin: prometheus (access via status API)", function()
     helpers.wait_until(function()
       -- require("socket").sleep(5)
       -- os.execute("cat servroot/logs/error.log")
+      status_client = helpers.http_client("127.0.0.1", tcp_status_port, 20000)
       local res = assert(status_client:send {
         method  = "GET",
         path    = "/metrics",
@@ -422,6 +423,7 @@ describe("Plugin: prometheus (access via status API)", function()
     helpers.wait_until(function()
       -- require("socket").sleep(5)
       -- os.execute("cat servroot/logs/error.log")
+      status_client = helpers.http_client("127.0.0.1", tcp_status_port, 20000)
       local res = assert(status_client:send {
         method  = "GET",
         path    = "/metrics",

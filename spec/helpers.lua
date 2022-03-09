@@ -1330,7 +1330,7 @@ local function wait_until(f, timeout, step)
 
   if not ok then
     -- report error from `f`, such as assert gone wrong
-    os.execute("cat servroot/logs/error.log")
+    -- os.execute("cat servroot/logs/error.log")
     error(tostring(res), 2)
   elseif not res and err then
     -- report a failure for `f` to meet its condition
