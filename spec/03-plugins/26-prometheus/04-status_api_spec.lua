@@ -399,7 +399,7 @@ describe("Plugin: prometheus (access via status API)", function()
 
     local body
     helpers.wait_until(function()
-      require("socket").sleep(5)
+      -- require("socket").sleep(5)
       -- os.execute("cat servroot/logs/error.log")
       local res = assert(status_client:send {
         method  = "GET",
@@ -420,7 +420,7 @@ describe("Plugin: prometheus (access via status API)", function()
 
     local body
     helpers.wait_until(function()
-      require("socket").sleep(5)
+      -- require("socket").sleep(5)
       -- os.execute("cat servroot/logs/error.log")
       local res = assert(status_client:send {
         method  = "GET",
