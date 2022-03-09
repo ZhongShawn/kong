@@ -397,10 +397,9 @@ describe("Plugin: prometheus (access via status API)", function()
     })
     admin_client:close()
 
-    status_client = helpers.http_client("127.0.0.1", tcp_status_port, 20000)
-
     local body
     helpers.wait_until(function()
+      os.execute("cat servroot/logs/error.log")
       local res = assert(status_client:send {
         method  = "GET",
         path    = "/metrics",
@@ -418,10 +417,9 @@ describe("Plugin: prometheus (access via status API)", function()
     })
     admin_client:close()
 
-    status_client = helpers.http_client("127.0.0.1", tcp_status_port, 20000)
-
     local body
     helpers.wait_until(function()
+      os.execute("cat servroot/logs/error.log")
       local res = assert(status_client:send {
         method  = "GET",
         path    = "/metrics",
