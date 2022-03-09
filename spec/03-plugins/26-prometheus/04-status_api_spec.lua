@@ -139,17 +139,25 @@ describe("Plugin: prometheus (access via status API)", function()
   before_each(function()
     status_client = helpers.http_client("127.0.0.1", tcp_status_port, 20000)
     proxy_client = helpers.proxy_client()
-    ngx.sleep(1)
   end)
 
   after_each(function()
     if status_client then
-      status_client:close()
+      local ok, err = status_client:close()
+
+      if not ok then
+        assert.same("expected", err)
+      end
+
     end
     if proxy_client then
-      proxy_client:close()
+      local ok, err = proxy_client:close()
+
+      if not ok then
+        assert.same("expected", err)
+      end
+      
     end
-    ngx.sleep(1)
   end)
 
   teardown(function()
