@@ -399,12 +399,15 @@ describe("Plugin: prometheus (access via status API)", function()
 
     local body
     helpers.wait_until(function()
-      local res, err = status_client:send({
-        method  = "GET",
-        path    = "/metrics"
-      })
+      local f = function()
+        return status_client:send({
+          method  = "GET",
+          path    = "/metrics"
+        })
+      end
+      local ok, res, err = pcall(f)
 
-      if res == "closed" then
+      if not ok or res == "closed" then
         status_client = helpers.http_client("127.0.0.1", tcp_status_port, 20000)
         assert(status_client:send({
           method  = "GET",
@@ -427,19 +430,22 @@ describe("Plugin: prometheus (access via status API)", function()
 
     local body
     helpers.wait_until(function()
-      local res, err = status_client:send({
-        method  = "GET",
-        path    = "/metrics"
-      })
+      local f = function()
+        return status_client:send({
+          method  = "GET",
+          path    = "/metrics"
+        })
+      end
+      local ok, res, err = pcall(f)
 
-      if res == "closed" then
+      if not ok or res == "closed" then
         status_client = helpers.http_client("127.0.0.1", tcp_status_port, 20000)
         assert(status_client:send({
           method  = "GET",
           path    = "/metrics"
         }))
       end
-      
+
       body = assert.res_status(200, res)
       return not body:find('kong_upstream_target_health{upstream="mock-upstream",target="some-random-dns:80"', nil, true)
     end, 15)
