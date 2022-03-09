@@ -357,7 +357,7 @@ local function job_re_cal_next_pointer(job, wheels)
     assert(next_hour_pointer ~= 0 or
            next_minute_pointer ~= 0 or
            next_second_pointer ~= 0 or
-           next_msec_pointer ~= 0)
+           next_msec_pointer ~= 0, "unexpected error")
 
     job.next_pointer.hour = next_hour_pointer
     job.next_pointer.minute = next_minute_pointer
@@ -430,35 +430,46 @@ end
 
 
 local function job_create(self, name, callback, delay, once, args)
-    local _, delay_msec = modf(delay)
-    delay_msec = delay_msec * 1000 + 10
-    delay_msec = floor(delay_msec)
-    delay_msec = floor(delay_msec / 100)
+    local delay_hour, delay_minute, delay_second, delay_msec
+    local immediately = false
 
-    delay, _ = modf(delay)
+    if delay ~= 0 then
+        delay = max(delay, 0.11)
 
-    local delay_hour = modf(delay / 60 / 60)
-    delay = delay % (60 * 60)
-    local delay_minute = modf(delay / 60)
-    local delay_second = delay % 60
+        delay, delay_msec = modf(delay)
+        delay_msec = delay_msec * 1000 + 10
+        delay_msec = floor(delay_msec)
+        delay_msec = floor(delay_msec / 100)
 
-    if delay_second == 0 then
-        if delay_hour == 0 and delay_minute == 0 then
-            delay_second = nil
+        delay, _ = modf(delay)
+
+        delay_hour = modf(delay / 60 / 60)
+        delay = delay % (60 * 60)
+        delay_minute = modf(delay / 60)
+        delay_second = delay % 60
+
+        if delay_second == 0 then
+            if delay_hour == 0 and delay_minute == 0 then
+                delay_second = nil
+            end
         end
-    end
 
-    if delay_minute == 0 then
+        if delay_minute == 0 then
+            if delay_hour == 0 then
+                delay_minute = nil
+            end
+        end
+
         if delay_hour == 0 then
-            delay_minute = nil
+            delay_hour = nil
         end
-    end
 
-    if delay_hour == 0 then
-        delay_hour = nil
+    else
+        immediately = true
     end
 
     local ret = {
+        immediately = immediately,
         enable = true,
         cancel = false,
         running = false,
@@ -497,13 +508,15 @@ local function job_create(self, name, callback, delay, once, args)
 
     job_create_meta(ret)
 
-    job_re_cal_next_pointer(ret, self.wheels)
+    if not ret.immediately then
+        job_re_cal_next_pointer(ret, self.wheels)
+    end
 
     setmetatable(ret, {
         __tostring = job_tostring
     })
 
-    -- log(ERR, ret)
+    assert(not (not ret.once and ret.immediately), "unexpected error")
 
     return ret
 end
@@ -770,8 +783,14 @@ local function create(self ,name, callback, delay, once, args)
     local job = job_create(self, name, callback, delay, once, args)
     jobs[name] = job
 
-    if delay == 0 then
-        self.wheels.pending_jobs[name] = job
+    if job.immediately then
+        local pending_jobs = self.wheels.pending_jobs
+
+        if pending_jobs[name] then
+            return false, "already exists timer"
+        end
+
+        pending_jobs[name] = job
         self.semaphore:post(1)
         return true, nil
     end
@@ -901,9 +920,7 @@ function _M:once(name, callback, delay, ...)
     assert(type(delay) == "number", "expected `delay to be a number")
     assert(delay >= 0, "expected `delay` to be greater than or equal to 0")
 
-    -- delay = max(delay, 0.11)
-
-    if delay >= MAX_EXPIRE or delay < 0.1 then
+    if delay >= MAX_EXPIRE then
         return timer_at(delay, callback, ...)
     end
 
@@ -919,9 +936,7 @@ function _M:every(name, callback, interval, ...)
     assert(type(interval) == "number", "expected `interval to be a number")
     assert(interval > 0, "expected `interval` to be greater than or equal to 0")
 
-    -- interval = max(interval, 0.11)
-
-    if interval >= MAX_EXPIRE or interval < 0.1 then
+    if interval >= MAX_EXPIRE then
         return timer_every(interval, callback, ...)
     end
 
