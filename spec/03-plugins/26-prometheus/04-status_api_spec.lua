@@ -139,6 +139,7 @@ describe("Plugin: prometheus (access via status API)", function()
   before_each(function()
     status_client = helpers.http_client("127.0.0.1", tcp_status_port, 20000)
     proxy_client = helpers.proxy_client()
+    ngx.sleep(1)
   end)
 
   after_each(function()
@@ -148,6 +149,7 @@ describe("Plugin: prometheus (access via status API)", function()
     if proxy_client then
       proxy_client:close()
     end
+    ngx.sleep(1)
   end)
 
   teardown(function()
@@ -379,7 +381,7 @@ describe("Plugin: prometheus (access via status API)", function()
     assert.matches('kong_upstream_target_health{upstream="mock-upstream",target="some-random-dns:80",address="",state="healthchecks_off",subsystem="stream"} 0', body, nil, true)
   end)
 
-  it("remove metrics from deleted upstreams #only", function()
+  it("remove metrics from deleted upstreams", function()
     local admin_client = helpers.admin_client()
     assert(admin_client:send {
       method  = "DELETE",
