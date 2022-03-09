@@ -397,6 +397,8 @@ describe("Plugin: prometheus (access via status API)", function()
     })
     admin_client:close()
 
+    status_client = helpers.http_client("127.0.0.1", tcp_status_port, 20000)
+
     local body
     helpers.wait_until(function()
       local res = assert(status_client:send {
@@ -415,6 +417,8 @@ describe("Plugin: prometheus (access via status API)", function()
       path    = "/upstreams/mock-upstream/targets/some-random-dns:80",
     })
     admin_client:close()
+
+    status_client = helpers.http_client("127.0.0.1", tcp_status_port, 20000)
 
     local body
     helpers.wait_until(function()
