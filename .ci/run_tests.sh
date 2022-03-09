@@ -81,7 +81,11 @@ if [ "$TEST_SUITE" == "plugins" ]; then
         cyan "--------------------------------------"
         echo
 
+        KONG_TEST_DONT_CLEAN=1
+
         $TEST_CMD $p || echo "* $p" >> .failed
+
+        cat servroot/logs/error.log
     done
 
     if [[ "$TEST_SPLIT" == second* ]] || [[ "$TEST_SPLIT" != first* ]]; then
