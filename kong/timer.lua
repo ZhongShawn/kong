@@ -415,7 +415,8 @@ local function job_create(self, name, callback, delay, once, args)
             },
 
             runs = 0,
-            finish = 0
+            finish = 0,
+            last_err_msg = ""
         },
         meta = {
             name = "[C]",
@@ -449,11 +450,18 @@ local function job_wrapper(job)
 
     job.running = true
 
-    job.callback(false, unpack(job.args))
+    local ok, err = pcall(job.callback, false, unpack(job.args))
+
+    local finish = stats.finish
+
+    if ok then
+        finish = finish + 1
+
+    else
+        stats.last_err_msg = err
+    end
 
     job.running = false
-
-    local finish = stats.finish + 1
     stats.finish = finish
 
     if FOCUS_UPDATE_TIME then
@@ -470,8 +478,6 @@ local function job_wrapper(job)
 
     local old_variance = runtime.variance
     runtime.variance = get_variance(spend, finish, old_variance, old_avg)
-
-    -- log(ERR, job)
 
 end
 
@@ -678,14 +684,11 @@ local function worker_timer_callback(premature, self, thread_index)
             return
         end
 
-        thread.alive = true
-
         -- TODO: check the return value
 
         local ok, err = semaphore:wait(1)
 
         while not is_empty_table(wheels.pending_jobs) do
-            thread.alive = true
             thread.counter.trigger = thread.counter.trigger + 1
 
             for name, job in pairs(wheels.pending_jobs) do
@@ -754,6 +757,7 @@ local function super_timer_callback(premature, self)
 
             self.real_time = now()
             local delta = max((self.real_time - self.expected_time) / 0.1, 1)
+            local expected_time = self.expected_time
 
             for i = 1, delta do
                 local _, continue = wheel_move_to_next(msec_wheel)
@@ -772,8 +776,10 @@ local function super_timer_callback(premature, self)
                 end
 
                 update_all_wheels(self)
-                self.expected_time = self.expected_time + 0.1
+                expected_time = expected_time + 0.1
             end
+
+            self.expected_time = expected_time
 
             if not is_empty_table(wheels.pending_jobs) then
                 semaphore:post(opt_threads)
@@ -785,9 +791,7 @@ local function super_timer_callback(premature, self)
     end
 end
 
--- create a virtual timer
--- name: name of timer
--- once: is it run once
+
 local function create(self ,name, callback, delay, once, args)
     local jobs = self.jobs
     if not name then
@@ -801,12 +805,6 @@ local function create(self ,name, callback, delay, once, args)
     local job = job_create(self, name, callback, delay, once, args)
     job_enable(job)
     jobs[name] = job
-
-    -- if delay == 0 then
-    --     self.wheels.pending_jobs[name] = job
-    --     self.semaphore:post(1)
-    --     return true, nil
-    -- end
 
     return insert_job_to_wheel(self, job)
 end
@@ -855,16 +853,9 @@ function _M:configure(options)
     self.enable = false
 
     self.threads = {}
-
     self.jobs = {}
-
-    -- the timer of the last job that was added
-    -- see function create
-    self.cur_real_timer_index = 1
-
     self.real_time = 0
     self.expected_time = 0
-
     self.super_timer = false
     self.destory = false
 
@@ -1055,10 +1046,14 @@ function _M:stats()
             sys.waiting = sys.waiting + 1
         end
 
+        local stats = job.stats
         jobs[name] = {
             name = name,
             meta = job.meta,
-            runtime = job.runtime
+            runtime = job.runtime,
+            runs = stats.runs,
+            faults = stats.faults,
+            last_err_msg = stats.last_err_msg
         }
     end
 
